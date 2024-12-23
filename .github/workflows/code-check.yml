@@ -26,27 +26,14 @@ jobs:
       - name: Build the React app
         run: npm run build
 
-
       - name: Test connection to SonarQube
         run: |
-          curl -v ${{ secrets.SONAR_HOST_URL }}  # Kiểm tra kết nối tới SonarQube
-
-      - name: Analyze code with SonarCloud
-        env:
-          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
-          SONAR_HOST_URL: https://sonarcloud.io  # Đặt server là SonarCloud
-        run: |
-          npx sonar-scanner \
-          -Dsonar.projectKey=test1 \
-          -Dsonar.projectName="test1" \
-          -Dsonar.sources=src \
-          -Dsonar.exclusions=**/node_modules/**,**/build/** \
-          -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+          curl -v http://34.170.74.189:9000  # Kiểm tra kết nối tới SonarQube
 
       - name: Analyze code with SonarQube
         env:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}  # URL từ GitHub Secrets
+          SONAR_HOST_URL: http://34.170.74.189:9000  # Sử dụng URL của SonarQube
         run: |
           npx sonar-scanner -X \
           -Dsonar.projectKey=test1 \
