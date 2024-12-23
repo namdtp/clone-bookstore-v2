@@ -47,7 +47,7 @@ jobs:
       # Bước 7: Phân tích mã với SonarQube
       - name: Analyze code with SonarQube
         env:
-          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}  # Token của SonarQube
+          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
         run: |
           npx sonar-scanner \
           -Dsonar.projectKey=test1-${{ github.ref_name }} \
@@ -56,7 +56,8 @@ jobs:
           -Dsonar.exclusions=**/node_modules/**,**/build/** \
           -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
           -Dsonar.host.url=http://34.126.109.151:9000/ \
-          -Dsonar.login=$SONARQUBE_TOKEN
+          -Dsonar.login=$SONAR_TOKEN \
+          -X
 
       # Bước 8: Kiểm tra kết quả phân tích từ SonarQube
       - name: Verify SonarQube Analysis
