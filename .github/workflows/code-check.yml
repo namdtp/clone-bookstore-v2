@@ -14,39 +14,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Đảm bảo không clone cạn để phục vụ phân tích chính xác
+          fetch-depth: 0  # Đảm bảo clone toàn bộ lịch sử cho phân tích chính xác
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: 17
-          distribution: 'zulu'
-
-      - name: Cache SonarQube packages
+      - name: Cache Node.js modules
         uses: actions/cache@v4
         with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-node
 
-      - name: Cache Maven packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-
-      - name: Move to project directory
+      - name: Install dependencies and build
         run: |
-          ls -la  # Kiểm tra cấu trúc thư mục
-          cd path/to/project  # Thay thế bằng đường dẫn thực tế tới thư mục chứa pom.xml
-          ls -la  # Xác minh pom.xml có tồn tại
+          npm install
+          npm run build  # Thay bằng lệnh build thực tế của dự án nếu cần
 
-      - name: Build and analyze
+      - name: Analyze with SonarQube
         env:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
-          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          npx sonar-scanner \
           -Dsonar.projectKey=test1 \
-          -Dsonar.projectName='test1'
+          -Dsonar.projectName='test1' \
+          -Dsonar.sources=src
