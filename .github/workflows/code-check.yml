@@ -38,7 +38,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
-          npx sonar-scanner \
+          npx sonar-scanner -X \
           -Dsonar.projectKey=test1 \
           -Dsonar.projectName="test1" \
           -Dsonar.sources=src \
