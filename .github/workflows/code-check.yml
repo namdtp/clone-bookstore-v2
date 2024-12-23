@@ -27,13 +27,13 @@ jobs:
           wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip
           unzip sonar-scanner-cli-4.7.0.2747-linux.zip
           mv sonar-scanner-4.7.0.2747-linux sonar-scanner
-          echo "export PATH=$PATH:$(pwd)/sonar-scanner/bin" >> $GITHUB_ENV
-          
-      - name: Check PATH
-        run: echo $PATH    
-          
+          export PATH=$PATH:$(pwd)/sonar-scanner/bin
+          echo $PATH
+          sonar-scanner --version
+
       - name: Run SonarQube Analysis
         run: |
+          export PATH=$PATH:$(pwd)/sonar-scanner/bin
           sonar-scanner \
             -Dsonar.projectKey=react-native-web \
             -Dsonar.sources=. \
