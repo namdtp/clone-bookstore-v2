@@ -21,7 +21,6 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
-          cache: 'maven'
 
       - name: Run SonarQube Analysis
         run: |
