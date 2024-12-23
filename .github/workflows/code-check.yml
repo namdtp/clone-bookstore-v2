@@ -32,12 +32,12 @@ jobs:
 
       - name: Analyze code with SonarQube
         env:
-          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
-          SONAR_HOST_URL: http://34.170.74.189:9000  # Sử dụng URL của SonarQube
+          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}  # Token của SonarQube
         run: |
           npx sonar-scanner -X \
           -Dsonar.projectKey=test1 \
           -Dsonar.projectName="test1" \
           -Dsonar.sources=src \
           -Dsonar.exclusions=**/node_modules/**,**/build/** \
-          -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+          -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
+          -Dsonar.host.url=http://34.170.74.189:9000 
