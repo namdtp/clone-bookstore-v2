@@ -35,6 +35,15 @@ jobs:
           echo "Checking disk space..."
           df -h
 
+      - name: Validate SonarQube server URL
+        run: echo "SonarQube server URL: ${{ secrets.SONAR_HOST_URL }}"
+
+      - name: Test connection to SonarQube
+        run: |
+          curl -v ${{ secrets.SONAR_HOST_URL }}
+
+
+
       - name: Analyze code with SonarQube
         env:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
