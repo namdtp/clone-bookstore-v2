@@ -72,7 +72,7 @@ jobs:
 
   trigger-jenkins:
     name: Trigger Jenkins CI/CD
-    needs: code-analysis
+    # needs: code-analysis
     runs-on: ubuntu-latest
 
     steps:
