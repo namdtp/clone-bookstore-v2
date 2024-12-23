@@ -27,7 +27,7 @@ jobs:
           sonar-scanner \
             -Dsonar.projectKey=react-native-web \
             -Dsonar.sources=. \
-            -Dsonar.host.url=http://<sonarqube-server-ip>:9000 \
+            -Dsonar.host.url=http://34.170.74.189:9000 \
             -Dsonar.login=${{ secrets.SONARQUBE_TOKEN }}
 
   trigger-jenkins:
