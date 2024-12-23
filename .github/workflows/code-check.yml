@@ -34,14 +34,6 @@ jobs:
       - name: Verify SonarQube Connection
         run: curl -I http://34.170.74.189:9000
 
-
-      - name: Verify Sonar Scanner Java
-        run: |
-          export JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17*/x64
-          export PATH=$JAVA_HOME/bin:$PATH
-          export PATH=$PATH:$(pwd)/sonar-scanner/bin
-          sonar-scanner -X | grep "Java version"
-
       - name: Run SonarQube Analysis
         run: |
           export JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17*/x64
