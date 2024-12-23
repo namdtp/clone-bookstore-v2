@@ -26,8 +26,6 @@ jobs:
       - name: Build the React app
         run: npm run build
 
-      - name: Validate SonarQube server URL
-        run: echo "SonarQube server URL: ${{ secrets.SONAR_HOST_URL }}"  # In ra URL của SonarQube
 
       - name: Test connection to SonarQube
         run: |
