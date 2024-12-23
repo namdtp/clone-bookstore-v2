@@ -37,10 +37,6 @@ jobs:
       - name: Build the React app
         run: npm run build
 
-      # Bước 6: In ra URL của SonarQube
-      - name: Validate SonarQube server URL
-        run: echo "SonarQube server URL: http://34.170.74.189:9000"  # In ra URL của SonarQube
-
       # Bước 7: Kiểm tra kết nối tới SonarQube
       - name: Test connection to SonarQube
         run: |
