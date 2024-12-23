@@ -26,19 +26,12 @@ jobs:
       - name: Build the React app
         run: npm run build
 
-      - name: Cache SonarQube scanner
-        uses: actions/cache@v4
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-
       - name: Analyze code with SonarQube
         env:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
-          npx sonar-scanner -X \
+          npx sonar-scanner -X\
           -Dsonar.projectKey=test1 \
           -Dsonar.projectName="test1" \
           -Dsonar.sources=src \
