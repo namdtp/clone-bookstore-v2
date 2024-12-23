@@ -11,25 +11,42 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Bước 1: Checkout mã nguồn
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Bước 2: Cài đặt JDK 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17  # Cài đặt Java 17
+          distribution: 'zulu'  # Dùng Zulu JDK (một bản phân phối Java phổ biến)
+
+      # Bước 3: Cài đặt Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 16
           cache: 'npm'
 
+      # Bước 4: Cài đặt dependencies
       - name: Install dependencies
         run: npm install
 
+      # Bước 5: Build ứng dụng React
       - name: Build the React app
         run: npm run build
 
+      # Bước 6: In ra URL của SonarQube
+      - name: Validate SonarQube server URL
+        run: echo "SonarQube server URL: http://34.170.74.189:9000"  # In ra URL của SonarQube
+
+      # Bước 7: Kiểm tra kết nối tới SonarQube
       - name: Test connection to SonarQube
         run: |
           curl -v http://34.170.74.189:9000  # Kiểm tra kết nối tới SonarQube
 
+      # Bước 8: Phân tích mã với SonarQube
       - name: Analyze code with SonarQube
         env:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}  # Token của SonarQube
@@ -40,4 +57,4 @@ jobs:
           -Dsonar.sources=src \
           -Dsonar.exclusions=**/node_modules/**,**/build/** \
           -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
-          -Dsonar.host.url=http://34.170.74.189:9000 
+          -Dsonar.host.url=http://34.170.74.189:9000  # Truyền URL chính xác vào lệnh sonar-scanner
