@@ -31,12 +31,10 @@ jobs:
           echo $PATH
           sonar-scanner --version
 
-      - name: Verify Java Version
-        run: java -version
-
-
       - name: Run SonarQube Analysis
         run: |
+          export JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17*/x64
+          export PATH=$JAVA_HOME/bin:$PATH
           export PATH=$PATH:$(pwd)/sonar-scanner/bin
           sonar-scanner \
             -Dsonar.projectKey=react-native-web \
