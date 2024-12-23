@@ -29,6 +29,9 @@ jobs:
           mv sonar-scanner-4.7.0.2747-linux sonar-scanner
           echo "export PATH=$PATH:$(pwd)/sonar-scanner/bin" >> $GITHUB_ENV
           
+      - name: Check PATH
+        run: echo $PATH    
+          
       - name: Run SonarQube Analysis
         run: |
           sonar-scanner \
