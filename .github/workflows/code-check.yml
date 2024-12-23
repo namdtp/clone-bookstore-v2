@@ -3,7 +3,7 @@ name: Build and Analyze React App
 on:
   push:
     branches:
-      - dev
+      - dev  # Chạy workflow khi có thay đổi được đẩy lên nhánh "dev"
 
 jobs:
   build:
@@ -26,28 +26,29 @@ jobs:
       - name: Build the React app
         run: npm run build
 
-      - name: Check system resources
-        run: |
-          echo "Checking CPU cores..."
-          nproc
-          echo "Checking memory usage..."
-          free -h
-          echo "Checking disk space..."
-          df -h
-
       - name: Validate SonarQube server URL
-        run: echo "SonarQube server URL: ${{ secrets.SONAR_HOST_URL }}"
+        run: echo "SonarQube server URL: ${{ secrets.SONAR_HOST_URL }}"  # In ra URL của SonarQube
 
       - name: Test connection to SonarQube
         run: |
-          curl -v ${{ secrets.SONAR_HOST_URL }}
+          curl -v ${{ secrets.SONAR_HOST_URL }}  # Kiểm tra kết nối tới SonarQube
 
-
+      - name: Analyze code with SonarCloud
+        env:
+          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io  # Đặt server là SonarCloud
+        run: |
+          npx sonar-scanner \
+          -Dsonar.projectKey=test1 \
+          -Dsonar.projectName="test1" \
+          -Dsonar.sources=src \
+          -Dsonar.exclusions=**/node_modules/**,**/build/** \
+          -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
 
       - name: Analyze code with SonarQube
         env:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}  # URL từ GitHub Secrets
         run: |
           npx sonar-scanner -X \
           -Dsonar.projectKey=test1 \
