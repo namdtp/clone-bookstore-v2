@@ -50,7 +50,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
         run: |
           npx sonar-scanner \
-          -Dsonar.projectKey=test1-${{ github.ref_name }} \
+          -Dsonar.projectKey=test1 \
           -Dsonar.projectName="Test 1 - Branch: ${{ github.ref_name }}" \
           -Dsonar.sources=src \
           -Dsonar.exclusions=**/node_modules/**,**/build/** \
