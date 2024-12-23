@@ -31,6 +31,10 @@ jobs:
           echo $PATH
           sonar-scanner --version
 
+      - name: Verify Java Version
+        run: java -version
+
+
       - name: Run SonarQube Analysis
         run: |
           export PATH=$PATH:$(pwd)/sonar-scanner/bin
