@@ -1,61 +1,91 @@
 pipeline {
     agent any
+
+    parameters {
+        string(name: 'branch', defaultValue: 'main', description: 'Branch to build and deploy')
+    }
+
     environment {
-         BRANCH = "${params.branch ?: 'dev'}"
+        NODE_VERSION = '16'   // Node.js version
+        NPM_CACHE_DIR = '.npm' // NPM cache directory
     }
 
     stages {
         stage('Checkout Code') {
             steps {
                 script {
-                    echo "Checking out branch: ${BRANCH}"
+                    echo "Branch provided: ${params.branch}"
                     checkout([$class: 'GitSCM',
-                        branches: [[name: "*/${BRANCH}"]],
-                        userRemoteConfigs: [[url: 'https://github.com/namdtp/clone-bookstore-v2.git']]
+                              branches: [[name: "*/${params.branch}"]],
+                              userRemoteConfigs: [[url: 'https://github.com/your-repo.git']]
                     ])
                 }
             }
         }
+
         stage('Set Environment') {
             steps {
                 script {
-                    if (env.BRANCH_NAME == 'dev') {
-                        DEPLOY_ENV = 'Development'
-                    } else if (env.BRANCH_NAME == 'staging') {
-                        DEPLOY_ENV = 'Staging'
-                    } else if (env.BRANCH_NAME == 'main') {
-                        DEPLOY_ENV = 'Production'
-                    } else {
-                        error('Unknown branch!')
-                    }
-                    echo "Deploying to ${DEPLOY_ENV} environment."
+                    echo "Setting environment for branch: ${params.branch}"
                 }
             }
         }
+
         stage('Install Dependencies') {
             steps {
-                sh 'npm install'
+                script {
+                    echo "Installing dependencies for Node.js version: ${env.NODE_VERSION}"
+                    sh """
+                        # Install Node.js
+                        curl -sL https://deb.nodesource.com/setup_${env.NODE_VERSION}.x | sudo -E bash -
+                        sudo apt-get install -y nodejs
+
+                        # Install dependencies
+                        npm install
+                    """
+                }
             }
         }
+
         stage('Run Tests') {
             steps {
-                sh 'npm test'
+                script {
+                    echo "Running tests..."
+                    sh "npm test" // Thay đổi nếu bạn có lệnh kiểm tra cụ thể
+                }
             }
         }
+
         stage('Build Application') {
             steps {
-                sh 'npm run build'
+                script {
+                    echo "Building the application..."
+                    sh "npm run build" // Lệnh build ứng dụng
+                }
             }
         }
+
         stage('Deploy') {
+            when {
+                anyOf {
+                    branch 'dev'
+                    branch 'staging'
+                    branch 'main'
+                }
+            }
             steps {
                 script {
-                    if (DEPLOY_ENV == 'Development') {
-                        sh './deploy-scripts/deploy-dev.sh'
-                    } else if (DEPLOY_ENV == 'Staging') {
-                        sh './deploy-scripts/deploy-staging.sh'
-                    } else if (DEPLOY_ENV == 'Production') {
-                        sh './deploy-scripts/deploy-prod.sh'
+                    if (params.branch == 'dev') {
+                        echo "Deploying to Development Environment"
+                        sh "./deploy-dev.sh"
+                    } else if (params.branch == 'staging') {
+                        echo "Deploying to Staging Environment"
+                        sh "./deploy-staging.sh"
+                    } else if (params.branch == 'main') {
+                        echo "Deploying to Production Environment"
+                        sh "./deploy-prod.sh"
+                    } else {
+                        error "Unknown branch for deployment!"
                     }
                 }
             }
@@ -64,13 +94,13 @@ pipeline {
 
     post {
         always {
-            echo 'Pipeline completed!'
+            echo "Pipeline execution completed."
         }
         success {
-            echo 'Deployment succeeded!'
+            echo "Pipeline executed successfully!"
         }
         failure {
-            echo 'Deployment failed!'
+            echo "Pipeline execution failed."
         }
     }
 }
