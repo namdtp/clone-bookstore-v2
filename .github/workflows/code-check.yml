@@ -1,26 +1,26 @@
 name: CI/CD with SonarQube and Jenkins
 
 on:
-    push:
-      branches:
-        - dev
-        - staging
-        - main
-  
-  jobs:
-    code-analysis:
-      name: Code Analysis with SonarQube
-      runs-on: ubuntu-latest
-  
-      steps:
+  push:
+    branches:
+      - dev
+      - staging
+      - main
+
+jobs:
+  code-analysis:
+    name: Code Analysis with SonarQube
+    runs-on: ubuntu-latest
+
+    steps:
       - name: Checkout Code
         uses: actions/checkout@v3
-  
+
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
           java-version: '11'
-  
+
       - name: Run SonarQube Analysis
         run: |
           sonar-scanner \
@@ -28,13 +28,13 @@ on:
             -Dsonar.sources=. \
             -Dsonar.host.url=http://<sonarqube-server-ip>:9000 \
             -Dsonar.login=${{ secrets.SONARQUBE_TOKEN }}
-  
-    trigger-jenkins:
-      name: Trigger Jenkins CI/CD
-      needs: code-analysis
-      runs-on: ubuntu-latest
-  
-      steps:
+
+  trigger-jenkins:
+    name: Trigger Jenkins CI/CD
+    needs: code-analysis
+    runs-on: ubuntu-latest
+
+    steps:
       - name: Trigger Jenkins Pipeline
         uses: appleboy/jenkins-action@v1.4.0
         with:
