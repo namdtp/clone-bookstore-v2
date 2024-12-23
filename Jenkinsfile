@@ -32,17 +32,17 @@ pipeline {
         }
 
         stage('Install Dependencies') {
-            steps {
-                script {
-                    echo "Installing dependencies for Node.js version: ${env.NODE_VERSION}"
-                    sh """
-                        # Install Node.js
-                        curl -sL https://deb.nodesource.com/setup_${env.NODE_VERSION}.x | sudo -E bash -
-                        sudo apt-get install -y nodejs
+        steps {
+            script {
+                echo "Installing dependencies for Node.js version: ${env.NODE_VERSION}"
+                sh """
+                    # Install Node.js
+                    curl -fsSL https://deb.nodesource.com/setup_${env.NODE_VERSION}.x | sudo -E bash -
+                    sudo apt-get install -y nodejs
 
-                        # Install dependencies
-                        npm install
-                    """
+                    # Install dependencies
+                    npm install
+                """
                 }
             }
         }
