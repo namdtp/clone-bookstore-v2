@@ -17,7 +17,7 @@ pipeline {
                     echo "Branch provided: ${params.branch}"
                     checkout([$class: 'GitSCM',
                               branches: [[name: "*/${params.branch}"]],
-                              userRemoteConfigs: [[url: 'https://github.com/your-repo.git']]
+                              userRemoteConfigs: [[url: 'https://github.com/namdtp/clone-bookstore-v2.git']]
                     ])
                 }
             }
