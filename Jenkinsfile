@@ -1,13 +1,19 @@
 pipeline {
     agent any
     environment {
-        DEPLOY_ENV = ''
+         BRANCH = "${params.branch ?: 'dev'}"
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                checkout scm
+                script {
+                    echo "Checking out branch: ${BRANCH}"
+                    checkout([$class: 'GitSCM',
+                        branches: [[name: "*/${BRANCH}"]],
+                        userRemoteConfigs: [[url: 'https://github.com/namdtp/clone-bookstore-v2.git']]
+                    ])
+                }
             }
         }
         stage('Set Environment') {
