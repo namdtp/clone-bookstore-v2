@@ -1,63 +1,39 @@
-name: CI/CD with SonarQube and Jenkins
+name: Build
 
 on:
   push:
     branches:
       - dev
-      - staging
-      - main
+
 
 jobs:
-  code-analysis:
-    name: Code Analysis with SonarQube
+  build:
+    name: Build and analyze
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Setup Java
-        uses: actions/setup-java@v3
+      - uses: actions/checkout@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
-
-      - name: Install Sonar Scanner
-        run: |
-          wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.7.0.2747-linux.zip
-          unzip sonar-scanner-cli-4.7.0.2747-linux.zip
-          mv sonar-scanner-4.7.0.2747-linux sonar-scanner
-          export PATH=$PATH:$(pwd)/sonar-scanner/bin
-          echo $PATH
-          sonar-scanner --version
-
-      - name: Verify SonarQube Connection
-        run: curl -I http://34.170.74.189:9000
-
-      - name: Run SonarQube Analysis
-        run: |
-          export JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17*/x64
-          export PATH=$JAVA_HOME/bin:$PATH
-          export PATH=$PATH:$(pwd)/sonar-scanner/bin
-          sonar-scanner \
-            -Dsonar.java.home=$JAVA_HOME \
-            -Dsonar.projectKey=react-native-web \
-            -Dsonar.sources=. \
-            -Dsonar.host.url=http://34.170.74.189:9000 \
-            -Dsonar.login=${{ secrets.SONARQUBE_TOKEN }}
-
-
-  trigger-jenkins:
-    name: Trigger Jenkins CI/CD
-    needs: code-analysis
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Trigger Jenkins Pipeline
-        uses: appleboy/jenkins-action@v1.4.0
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
-          jenkins_url: ${{ secrets.JENKINS_URL }}
-          username: ${{ secrets.JENKINS_USER }}
-          password: ${{ secrets.JENKINS_TOKEN }}
-          job: 'react-native-web-ci-cd'
-          parameters: '{"branch": "${{ github.ref_name }}"}'
+          java-version: 17
+          distribution: 'zulu' # Alternative distribution options are available.
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Build and analyze
+        env:
+          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=test1 -Dsonar.projectName='test1'
