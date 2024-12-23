@@ -26,6 +26,15 @@ jobs:
       - name: Build the React app
         run: npm run build
 
+      - name: Check system resources
+        run: |
+          echo "Checking CPU cores..."
+          nproc
+          echo "Checking memory usage..."
+          free -h
+          echo "Checking disk space..."
+          df -h
+
       - name: Analyze code with SonarQube
         env:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
