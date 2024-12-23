@@ -1,4 +1,4 @@
-name: Build
+name: Build and Analyze React App
 
 on:
   push:
@@ -13,27 +13,34 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Đảm bảo clone toàn bộ lịch sử cho phân tích chính xác
 
-      - name: Cache Node.js modules
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build the React app
+        run: npm run build
+
+      - name: Cache SonarQube scanner
         uses: actions/cache@v4
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: ${{ runner.os }}-node
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
 
-      - name: Install dependencies and build
-        run: |
-          npm install
-          npm run build  # Thay bằng lệnh build thực tế của dự án nếu cần
-
-      - name: Analyze with SonarQube
+      - name: Analyze code with SonarQube
         env:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
           npx sonar-scanner \
           -Dsonar.projectKey=test1 \
-          -Dsonar.projectName='test1' \
-          -Dsonar.sources=src
+          -Dsonar.projectName="test1" \
+          -Dsonar.sources=src \
+          -Dsonar.exclusions=**/node_modules/**,**/build/** \
+          -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
