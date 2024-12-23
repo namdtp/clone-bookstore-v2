@@ -31,12 +31,6 @@ jobs:
           echo $PATH
           sonar-scanner --version
 
-      - name: Verify Java Version
-        run: |
-          export JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17*/x64
-          export PATH=$JAVA_HOME/bin:$PATH
-          java -version
-
       - name: Verify Sonar Scanner Java
         run: |
           export JAVA_HOME=/opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17*/x64
@@ -50,10 +44,12 @@ jobs:
           export PATH=$JAVA_HOME/bin:$PATH
           export PATH=$PATH:$(pwd)/sonar-scanner/bin
           sonar-scanner \
+            -Dsonar.java.home=$JAVA_HOME \
             -Dsonar.projectKey=react-native-web \
             -Dsonar.sources=. \
             -Dsonar.host.url=http://34.170.74.189:9000 \
             -Dsonar.login=${{ secrets.SONARQUBE_TOKEN }}
+
 
   trigger-jenkins:
     name: Trigger Jenkins CI/CD
