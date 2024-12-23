@@ -76,11 +76,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Trigger Jenkins Pipeline
-        uses: appleboy/jenkins-action@master
-        with:
-          jenkins_url: ${{ secrets.JENKINS_URL }}
-          username: ${{ secrets.JENKINS_USER }}
-          password: ${{ secrets.JENKINS_TOKEN }}
-          job: 'react-native-web-ci-cd'
-          parameters: '{"branch": "${{ github.ref_name }}"}'
+    - name: Trigger Jenkins Pipeline
+      run: |
+        curl -X POST "$JENKINS_URL/job/testpipeline1/buildWithParameters?branch=${{ github.ref_name }}" \
+          --user "$JENKINS_USER:$JENKINS_TOKEN"
+      env:
+        JENKINS_URL: ${{ secrets.JENKINS_URL }}
+        JENKINS_USER: ${{ secrets.JENKINS_USER }}
+        JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}
