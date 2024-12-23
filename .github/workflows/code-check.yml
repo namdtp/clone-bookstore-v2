@@ -1,26 +1,28 @@
-name: Build and Analyze React App
+name: CI/CD with SonarQube and Jenkins
 
 on:
   push:
     branches:
-      - dev  # Chạy workflow khi có thay đổi được đẩy lên nhánh "dev"
+      - dev
+      - staging
+      - main
 
 jobs:
-  build:
-    name: Build and analyze
+  code-analysis:
+    name: Build and Analyze React App
     runs-on: ubuntu-latest
 
     steps:
       # Bước 1: Checkout mã nguồn
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       # Bước 2: Cài đặt JDK 17
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v3
         with:
-          java-version: 17  # Cài đặt Java 17
-          distribution: 'zulu'  # Dùng Zulu JDK (một bản phân phối Java phổ biến)
+          java-version: 17
+          distribution: 'temurin'
 
       # Bước 3: Cài đặt Node.js
       - name: Setup Node.js
@@ -37,20 +39,41 @@ jobs:
       - name: Build the React app
         run: npm run build
 
-      # Bước 7: Kiểm tra kết nối tới SonarQube
+      # Bước 6: Kiểm tra kết nối tới SonarQube
       - name: Test connection to SonarQube
         run: |
-          curl -v http://34.170.74.189:9000  # Kiểm tra kết nối tới SonarQube
+          curl -v http://34.170.74.189:9000 || exit 1
 
-      # Bước 8: Phân tích mã với SonarQube
+      # Bước 7: Phân tích mã với SonarQube
       - name: Analyze code with SonarQube
         env:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}  # Token của SonarQube
         run: |
-          npx sonar-scanner -X \
+          npx sonar-scanner \
           -Dsonar.projectKey=test1 \
-          -Dsonar.projectName="test1" \
+          -Dsonar.projectName="Test 1" \
           -Dsonar.sources=src \
           -Dsonar.exclusions=**/node_modules/**,**/build/** \
           -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
-          -Dsonar.host.url=http://34.170.74.189:9000  # Truyền URL chính xác vào lệnh sonar-scanner
+          -Dsonar.host.url=http://34.170.74.189:9000 \
+          -Dsonar.login=$SONAR_TOKEN
+
+      # Bước 8: Kiểm tra kết quả phân tích từ SonarQube
+      - name: Verify SonarQube Analysis
+        run: echo "SonarQube analysis completed. Check results on http://34.170.74.189:9000"
+
+  trigger-jenkins:
+    name: Trigger Jenkins CI/CD
+    needs: code-analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      # Bước 1: Kích hoạt Jenkins Pipeline
+      - name: Trigger Jenkins Pipeline
+        uses: appleboy/jenkins-action@v1.4.0
+        with:
+          jenkins_url: ${{ secrets.JENKINS_URL }}
+          username: ${{ secrets.JENKINS_USER }}
+          password: ${{ secrets.JENKINS_TOKEN }}
+          job: 'react-native-web-ci-cd'
+          parameters: '{"branch": "${{ github.ref_name }}"}'
