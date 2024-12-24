@@ -69,23 +69,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Bước 1: Gọi Jenkins Pipeline dựa trên nhánh thay đổi
-      - name: Trigger Jenkins Pipeline Based on Branch
+      - name: Determine branch and trigger Jenkins pipeline
         run: |
           if [ "${{ github.ref_name }}" = "main" ]; then
             echo "Triggering Jenkins for Production Pipeline..."
-            curl -X POST "$JENKINS_URL/job/prod-pipeline/buildWithParameters?branch=main" \
-              --user "$JENKINS_USER:$JENKINS_TOKEN"
+            curl -X POST "http://34.126.109.151:8080/view/all/job/pipeline-prod/build?token=prod" \
+              --user "$JENKINS_USER:$JENKINS_TOKEN" || echo "Failed to trigger Jenkins pipeline"
           elif [ "${{ github.ref_name }}" = "staging" ]; then
             echo "Triggering Jenkins for Staging Pipeline..."
-            curl -X POST "$JENKINS_URL/job/staging-pipeline/buildWithParameters?branch=staging" \
-              --user "$JENKINS_USER:$JENKINS_TOKEN"
+            curl -X POST "http://34.126.109.151:8080/job/pipeline-staging/buildWithParameters?token=staging" \
+              --user "$JENKINS_USER:$JENKINS_TOKEN" || echo "Failed to trigger Jenkins pipeline"
           elif [ "${{ github.ref_name }}" = "dev" ]; then
             echo "Triggering Jenkins for Development Pipeline..."
-            curl -X POST "$JENKINS_URL/job/dev-pipeline/buildWithParameters?branch=dev" \
-              --user "$JENKINS_USER:$JENKINS_TOKEN"
+            curl -X POST "http://34.126.109.151:8080/view/all/job/testpipeline1/build?token=dev" \
+              --user "$JENKINS_USER:$JENKINS_TOKEN" || echo "Failed to trigger Jenkins pipeline"
           else
             echo "Branch ${{ github.ref_name }} is not handled by this workflow."
+          fi
         env:
           JENKINS_URL: ${{ secrets.JENKINS_URL }}
           JENKINS_USER: ${{ secrets.JENKINS_USER }}
