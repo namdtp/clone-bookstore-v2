@@ -85,7 +85,7 @@ jobs:
               -H "Jenkins-Crumb:$CRUMB"
           elif [ "${{ github.ref_name }}" = "staging" ]; then
             echo "Triggering Jenkins for Staging Pipeline..."
-            curl -X POST "$JENKINS_URL/view/all/job/pipeline-staging/buildWithParameters?token=staging" \
+            curl -X POST "$JENKINS_URL/view/all/job/staging-pipeline/build?token=staging" \
               --user "$JENKINS_USER:$JENKINS_TOKEN" \
               -H "Jenkins-Crumb:$CRUMB"
           elif [ "${{ github.ref_name }}" = "dev" ]; then
