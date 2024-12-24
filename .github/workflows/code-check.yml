@@ -1,4 +1,4 @@
-name: Check Changes and Trigger Jenkins Deployment
+name: CI/CD with SonarQube and Jenkins
 
 on:
   push:
@@ -8,30 +8,95 @@ on:
       - staging
 
 jobs:
-  trigger-jenkins:
-    name: Trigger Jenkins Deployment
+  code-analysis:
+    name: Build and Analyze React App
     runs-on: ubuntu-latest
 
     steps:
-      - name: Determine Branch and Deploy Environment
-        id: set-env
-        run: |
-          BRANCH_NAME=${{ github.ref_name }}
-          if [ "$BRANCH_NAME" == "main" ]; then
-            echo "DEPLOY_ENV=prod" >> $GITHUB_ENV
-          elif [ "$BRANCH_NAME" == "dev" ]; then
-            echo "DEPLOY_ENV=dev" >> $GITHUB_ENV
-          elif [ "$BRANCH_NAME" == "staging" ]; then
-            echo "DEPLOY_ENV=staging" >> $GITHUB_ENV
-          else
-            echo "Branch $BRANCH_NAME is not configured for deployment."
-            exit 1
-        env:
-          BRANCH_NAME: ${{ github.ref_name }}
+      # Bước 1: Checkout mã nguồn
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Trigger Jenkins Job
+      # Bước 2: Cài đặt JDK 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: 'temurin'
+
+      # Bước 3: Cài đặt Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'npm'
+
+      # Bước 4: Cài đặt dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Bước 5: Build ứng dụng React
+      - name: Build the React app
+        run: npm run build
+
+      # Bước 6: Kiểm tra kết nối tới SonarQube
+      - name: Test connection to SonarQube
         run: |
-          curl -X POST "http://your-jenkins-url/job/your-job-name/buildWithParameters" \
-            --data-urlencode "token=your-trigger-token" \
-            --data-urlencode "BRANCH_NAME=${{ github.ref_name }}" \
-            --data-urlencode "DEPLOY_ENV=${{ env.DEPLOY_ENV }}"
+          curl -v http://34.126.109.151:9000/ || exit 1
+
+      # Bước 7: Phân tích mã với SonarQube
+      - name: Analyze code with SonarQube
+        env:
+          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
+        run: |
+          npx sonar-scanner \
+          -Dsonar.projectKey=test1 \
+          -Dsonar.projectName="Test 1 - Branch: ${{ github.ref_name }}" \
+          -Dsonar.sources=src \
+          -Dsonar.exclusions=**/node_modules/**,**/build/** \
+          -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
+          -Dsonar.host.url=http://34.126.109.151:9000/ \
+          -Dsonar.login=$SONARQUBE_TOKEN \
+          -X
+
+      # Bước 8: Kiểm tra kết quả phân tích từ SonarQube
+      - name: Verify SonarQube Analysis
+        run: echo "SonarQube analysis completed. Check results on http://34.126.109.151:9000/"
+
+  trigger-jenkins:
+    name: Trigger Jenkins CI/CD
+    needs: code-analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install jq (for JSON parsing)
+        run: sudo apt-get install -y jq
+
+      - name: Trigger Jenkins Pipeline
+        run: |
+          # Lấy Jenkins Crumb
+          CRUMB=$(curl -u "$JENKINS_USER:$JENKINS_TOKEN" "$JENKINS_URL/crumbIssuer/api/json" | grep -o '"crumb":"[^"]*' | cut -d':' -f2 | tr -d '"')
+
+          # Kiểm tra nhánh và trigger pipeline phù hợp
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "Triggering Jenkins for Production Pipeline..."
+            curl -X POST "$JENKINS_URL/view/all/job/pipeline-prod/build?token=prod" \
+              --user "$JENKINS_USER:$JENKINS_TOKEN" \
+              -H "Jenkins-Crumb:$CRUMB"
+          elif [ "${{ github.ref_name }}" = "staging" ]; then
+            echo "Triggering Jenkins for Staging Pipeline..."
+            curl -X POST "$JENKINS_URL/view/all/job/pipeline-staging/buildWithParameters?token=staging" \
+              --user "$JENKINS_USER:$JENKINS_TOKEN" \
+              -H "Jenkins-Crumb:$CRUMB"
+          elif [ "${{ github.ref_name }}" = "dev" ]; then
+            echo "Triggering Jenkins for Development Pipeline..."
+            curl -X POST "$JENKINS_URL/view/all/job/testpipeline1/build?token=dev" \
+              --user "$JENKINS_USER:$JENKINS_TOKEN" \
+              -H "Jenkins-Crumb:$CRUMB"
+          else
+            echo "Branch ${{ github.ref_name }} is not handled by this workflow."
+          fi
+    env:
+      JENKINS_URL: ${{ secrets.JENKINS_URL }}
+      JENKINS_USER: ${{ secrets.JENKINS_USER }}
+      JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}
